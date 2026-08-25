@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cover Letter - {{ payload.sender_name }}</title>
+    <style>
+        @page {
+            size: letter;
+            margin: 18mm 20mm;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-size: 10pt;
+            line-height: 1.5;
+            color: #1e293b;
+            background-color: #ffffff;
+        }
+
+        .letter-container {
+            width: 100%;
+            max-width: 750px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        header {
+            border-bottom: 2px solid #0f172a;
+            padding-bottom: 12px;
+            margin-bottom: 24px;
+        }
+
+        .sender-name {
+            font-size: 20pt;
+            font-weight: 700;
+            color: #0f172a;
+            letter-spacing: -0.5px;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+
+        .target-role-badge {
+            font-size: 10pt;
+            font-weight: 600;
+            color: #2563eb;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Date & Recipient Details */
+        .meta-section {
+            margin-bottom: 20px;
+            font-size: 9.5pt;
+            color: #475569;
+            line-height: 1.4;
+        }
+
+        .current-date {
+            margin-bottom: 14px;
+            font-weight: 500;
+            color: #0f172a;
+        }
+
+        .recipient-details {
+            font-size: 9.5pt;
+        }
+
+        .recipient-name {
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .company-name {
+            font-weight: 600;
+            color: #334155;
+        }
+
+        /* Salutation & Body */
+        .salutation {
+            font-weight: 700;
+            font-size: 10pt;
+            color: #0f172a;
+            margin-bottom: 14px;
+        }
+
+        .letter-body {
+            color: #334155;
+        }
+
+        .letter-body p {
+            margin-bottom: 14px;
+            text-align: justify;
+        }
+
+        /* Signoff */
+        .signoff {
+            margin-top: 24px;
+        }
+
+        .closing-phrase {
+            color: #334155;
+            margin-bottom: 28px;
+        }
+
+        .sender-signature {
+            font-weight: 700;
+            font-size: 11pt;
+            color: #0f172a;
+        }
+
+        @media print {
+            body {
+                font-size: 10pt;
+            }
+            .letter-container {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="letter-container">
+        <!-- Header -->
+        <header>
+            <h1 class="sender-name">{{ payload.sender_name }}</h1>
+            <div class="target-role-badge">Application for {{ payload.job_title }} | {{ payload.company }}</div>
+        </header>
+
+        <!-- Meta Info -->
+        <div class="meta-section">
+            <div class="current-date">{{ date_str }}</div>
+            <div class="recipient-details">
+                <div class="recipient-name">Attn: {{ payload.recipient_name }}</div>
+                <div class="company-name">{{ payload.company }}</div>
+            </div>
+        </div>
+
+        <!-- Salutation -->
+        <div class="salutation">Dear {{ payload.recipient_name }},</div>
+
+        <!-- Body -->
+        <div class="letter-body">
+            <p>{{ payload.opening_paragraph }}</p>
+            {% for para in payload.body_paragraphs %}
+            <p>{{ para }}</p>
+            {% endfor %}
+            <p>{{ payload.call_to_action }}</p>
+        </div>
+
+        <!-- Signoff -->
+        <div class="signoff">
+            <div class="closing-phrase">Sincerely,</div>
+            <div class="sender-signature">{{ payload.sender_name }}</div>
+        </div>
+    </div>
+</body>
+</html>

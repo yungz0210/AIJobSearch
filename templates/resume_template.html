@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ payload.contact_info.full_name }} - Resume</title>
+    <style>
+        @page {
+            size: letter;
+            margin: 12mm 14mm;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-size: 9.5pt;
+            line-height: 1.35;
+            color: #1e293b;
+            background-color: #ffffff;
+        }
+
+        .resume-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            border-bottom: 2px solid #0f172a;
+            padding-bottom: 8px;
+            margin-bottom: 10px;
+        }
+
+        .candidate-name {
+            font-size: 18pt;
+            font-weight: 700;
+            color: #0f172a;
+            letter-spacing: -0.5px;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+
+        .contact-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            font-size: 8.5pt;
+            color: #475569;
+        }
+
+        .contact-item {
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .contact-item a {
+            color: #0284c7;
+            text-decoration: none;
+        }
+
+        .contact-separator {
+            color: #cbd5e1;
+            margin: 0 2px;
+        }
+
+        /* Sections */
+        section {
+            margin-bottom: 10px;
+        }
+
+        .section-title {
+            font-size: 10.5pt;
+            font-weight: 700;
+            color: #0f172a;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 2px;
+            margin-bottom: 6px;
+        }
+
+        /* Summary */
+        .summary-text {
+            font-size: 9pt;
+            color: #334155;
+            text-align: justify;
+            line-height: 1.35;
+        }
+
+        /* Experience */
+        .experience-item {
+            margin-bottom: 8px;
+        }
+
+        .experience-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 2px;
+        }
+
+        .role-title {
+            font-weight: 700;
+            font-size: 9.5pt;
+            color: #0f172a;
+        }
+
+        .company-name {
+            font-weight: 600;
+            color: #2563eb;
+        }
+
+        .experience-dates {
+            font-size: 8.5pt;
+            font-weight: 600;
+            color: #64748b;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .experience-location {
+            font-size: 8pt;
+            color: #94a3b8;
+            font-style: italic;
+        }
+
+        .achievements-list {
+            list-style-type: disc;
+            margin-left: 16px;
+            margin-top: 3px;
+        }
+
+        .achievements-list li {
+            font-size: 8.8pt;
+            color: #334155;
+            margin-bottom: 2.5px;
+            line-height: 1.3;
+        }
+
+        /* Skills */
+        .skills-grid {
+            display: table;
+            width: 100%;
+        }
+
+        .skill-row {
+            display: table-row;
+        }
+
+        .skill-category {
+            display: table-cell;
+            font-weight: 700;
+            color: #1e293b;
+            width: 22%;
+            padding-bottom: 3px;
+            font-size: 8.8pt;
+        }
+
+        .skill-list {
+            display: table-cell;
+            color: #334155;
+            padding-bottom: 3px;
+            font-size: 8.8pt;
+        }
+
+        /* Education & Projects */
+        .two-col-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 2px;
+        }
+
+        .edu-degree {
+            font-weight: 700;
+            font-size: 9pt;
+            color: #0f172a;
+        }
+
+        .edu-school {
+            font-weight: 500;
+            color: #475569;
+        }
+
+        .edu-dates {
+            font-size: 8.5pt;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .edu-details {
+            font-size: 8.3pt;
+            color: #64748b;
+            margin-top: 1px;
+        }
+
+        .project-item {
+            margin-bottom: 4px;
+        }
+
+        .project-name {
+            font-weight: 700;
+            font-size: 9pt;
+            color: #0f172a;
+        }
+
+        .project-desc {
+            font-size: 8.5pt;
+            color: #334155;
+        }
+
+        @media print {
+            body {
+                font-size: 9pt;
+            }
+            .resume-container {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="resume-container">
+        <!-- Header -->
+        <header>
+            <h1 class="candidate-name">{{ payload.contact_info.full_name }}</h1>
+            <div class="contact-row">
+                {% if payload.contact_info.email %}
+                <span class="contact-item">✉ {{ payload.contact_info.email }}</span>
+                {% endif %}
+                {% if payload.contact_info.phone %}
+                <span class="contact-separator">•</span>
+                <span class="contact-item">☎ {{ payload.contact_info.phone }}</span>
+                {% endif %}
+                {% if payload.contact_info.location %}
+                <span class="contact-separator">•</span>
+                <span class="contact-item">📍 {{ payload.contact_info.location }}</span>
+                {% endif %}
+                {% if payload.contact_info.linkedin %}
+                <span class="contact-separator">•</span>
+                <span class="contact-item"><a href="{{ payload.contact_info.linkedin }}">LinkedIn</a></span>
+                {% endif %}
+                {% if payload.contact_info.github %}
+                <span class="contact-separator">•</span>
+                <span class="contact-item"><a href="{{ payload.contact_info.github }}">GitHub</a></span>
+                {% endif %}
+                {% if payload.contact_info.website %}
+                <span class="contact-separator">•</span>
+                <span class="contact-item"><a href="{{ payload.contact_info.website }}">Portfolio</a></span>
+                {% endif %}
+            </div>
+        </header>
+
+        <!-- Summary -->
+        {% if payload.summary %}
+        <section id="summary-section">
+            <h2 class="section-title">Professional Summary</h2>
+            <p class="summary-text">{{ payload.summary }}</p>
+        </section>
+        {% endif %}
+
+        <!-- Work Experience -->
+        {% if payload.work_experience %}
+        <section id="experience-section">
+            <h2 class="section-title">Professional Experience</h2>
+            {% for job in payload.work_experience %}
+            <div class="experience-item">
+                <div class="experience-header">
+                    <div>
+                        <span class="role-title">{{ job.role }}</span> | 
+                        <span class="company-name">{{ job.company }}</span>
+                        {% if job.location %}
+                        <span class="experience-location">({{ job.location }})</span>
+                        {% endif %}
+                    </div>
+                    <div class="experience-dates">{{ job.dates }}</div>
+                </div>
+                <ul class="achievements-list">
+                    {% for bullet in job.achievements %}
+                    <li>{{ bullet }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endfor %}
+        </section>
+        {% endif %}
+
+        <!-- Technical Skills -->
+        {% if payload.technical_skills %}
+        <section id="skills-section">
+            <h2 class="section-title">Skills & Competencies</h2>
+            <div class="skills-grid">
+                {% for item in payload.technical_skills %}
+                <div class="skill-row">
+                    <div class="skill-category">{{ item.category }}:</div>
+                    <div class="skill-list">{{ item.skills | join(', ') }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- Education -->
+        {% if payload.education %}
+        <section id="education-section">
+            <h2 class="section-title">Education</h2>
+            {% for edu in payload.education %}
+            <div class="two-col-row">
+                <div>
+                    <span class="edu-degree">{{ edu.degree }}</span> – 
+                    <span class="edu-school">{{ edu.institution }}</span>
+                </div>
+                <div class="edu-dates">{{ edu.graduation_year }}</div>
+            </div>
+            {% if edu.details %}
+            <div class="edu-details">{{ edu.details }}</div>
+            {% endif %}
+            {% endfor %}
+        </section>
+        {% endif %}
+
+        <!-- Certifications & Key Projects -->
+        {% if payload.certifications_or_projects %}
+        <section id="projects-section">
+            <h2 class="section-title">Projects & Certifications</h2>
+            {% for item in payload.certifications_or_projects %}
+            <div class="project-item">
+                <span class="project-name">{{ item.name }}</span>
+                {% if item.url %}<a href="{{ item.url }}" style="font-size: 8pt; color: #0284c7; text-decoration: none;"> [Link]</a>{% endif %}:
+                <span class="project-desc">{{ item.description }}</span>
+            </div>
+            {% endfor %}
+        </section>
+        {% endif %}
+    </div>
+</body>
+</html>
