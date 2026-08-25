@@ -1,0 +1,26 @@
+Job Title: Senior AI Systems Engineer
+Company: Anthropic / TechForward AI
+Location: Remote (Global) / San Francisco, CA
+Experience Level: Senior / Lead
+
+About the Role:
+We are seeking an experienced Senior AI Systems Engineer to architect, build, and optimize scalable LLM infrastructure, multi-agent frameworks, and high-throughput backend services. You will work at the intersection of applied machine learning, production API gateways, automated evaluation pipelines, and low-latency cloud deployments.
+
+Key Responsibilities:
+- Design and implement production multi-agent architectures and LLM application workflows using Python, FastAPI, and GenAI SDKs.
+- Optimize prompt engineering, structured output extraction, and retrieval-augmented generation (RAG) pipelines.
+- Build reliable, asynchronous backend microservices with Docker, Kubernetes, PostgreSQL, Redis, and vector databases.
+- Develop rigorous automated evaluation benchmarks to score accuracy, latency, and token efficiency.
+- Collaborate with product designers and frontend teams to deliver delightful, enterprise-grade AI tools.
+
+Required Qualifications & Hard Skills:
+- 4+ years of professional software engineering experience with strong proficiency in Python and modern frameworks (FastAPI, Pydantic).
+- Deep hands-on experience building generative AI applications with LLMs (Google Gemini, OpenAI, Claude).
+- Solid knowledge of containerization (Docker), CI/CD pipelines, and cloud platforms (AWS / GCP / Azure).
+- Proven track record of architecting scalable backend systems with robust database design and caching strategies.
+- Strong grounding in software engineering best practices: clean architecture, typing, automated testing, and code quality.
+
+Preferred Qualifications & Soft Skills:
+- Experience building developer tools, CLI utilities, or agentic pair-programming workflows.
+- Excellent communication skills, ability to mentor junior engineers, and strong ownership mindset.
+- Prior experience in fast-paced startup or high-growth tech environments.
