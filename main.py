@@ -95,12 +95,31 @@ console = Console(force_terminal=True, legacy_windows=False)
     help="Additional Google Gemini API key to append to rotation pool"
 )
 @click.option(
+    "--scan-market",
+    type=str,
+    required=False,
+    help="Scan live market skill demand and salary trends (e.g. 'AI Engineer')"
+)
+@click.option(
+    "--roadmap",
+    is_flag=True,
+    default=False,
+    help="Generate Employability Diagnostic & Upskilling Roadmap from resume"
+)
+@click.option(
+    "--target-role",
+    type=str,
+    default="Software Engineer",
+    show_default=True,
+    help="Target role/track when generating an employability roadmap"
+)
+@click.option(
     "--web",
     is_flag=True,
     default=False,
     help="Launch the interactive Streamlit Web UI"
 )
-def cli(resume, job, search_jobs, location, results_count, output_dir, pdf, model, max_retries, add_key, web):
+def cli(resume, job, search_jobs, location, results_count, output_dir, pdf, model, max_retries, add_key, scan_market, roadmap, target_role, web):
     """
     AI Job Search: Autonomous multi-agent pipeline to search live openings,
     analyze job requirements, score candidate match, draft tailored 1-page ATS resumes,
@@ -152,6 +171,123 @@ def cli(resume, job, search_jobs, location, results_count, output_dir, pdf, mode
         console.print(f"\n[green]💡 Tip:[/green] To auto-tailor for one of these jobs, run:\n"
                       f"[white]python main.py --resume \"Chin Yung Wei Resume - Aug 2026.docx\" --job \"<job_url>\"[/white]\n"
                       f"Or launch the interactive web studio: [cyan]python main.py --web[/cyan]\n")
+        return
+
+    # If user wants to scan live market demand
+    if scan_market:
+        console.print(Panel.fit(
+            f"[bold cyan]📈 Scanning Market Demand & Skill Pulse[/bold cyan]\n"
+            f"[dim]Role: [bold]{scan_market}[/bold] | Hub: [bold]{location}[/bold] | Samples: [bold]{results_count}[/bold][/dim]",
+            border_style="cyan"
+        ))
+        key_manager = KeyManager()
+        if add_key:
+            key_manager.add_key(add_key)
+        agent = JobSearchAgent(key_manager=key_manager, model=model)
+
+        with console.status("[bold blue]Sampling live postings across LinkedIn, Indeed, and Google Jobs...", spinner="dots"):
+            listings, corpus = JobFinder.sample_market_corpus(
+                query=scan_market,
+                location=location,
+                sample_size=max(10, results_count)
+            )
+
+        with console.status("[bold magenta]Synthesizing macro skill frequencies, salary, and emerging trends...", spinner="dots"):
+            report = agent.analyze_market_demand(
+                query=scan_market,
+                location=location,
+                sample_size=len(listings) if listings else results_count,
+                market_corpus=corpus
+            )
+
+        console.print(f"\n[bold green]✔ Market Report Synthesized ({len(listings)} postings analyzed)[/bold green]\n")
+        console.print(Panel(
+            f"[bold]Market Summary:[/bold]\n{report.market_summary}\n\n"
+            f"[bold]Salary & Compensation Insights:[/bold]\n{report.salary_insights}\n\n"
+            f"[bold]Top Hiring Companies / Sectors:[/bold]\n{', '.join(report.top_hiring_companies) if report.top_hiring_companies else 'Various'}",
+            title=f"[bold cyan]Macro Market Pulse: {scan_market} ({location})[/bold cyan]",
+            border_style="cyan"
+        ))
+
+        table = Table(title="Top In-Demand Technical Skills", show_header=True, header_style="bold magenta")
+        table.add_column("Skill Name", style="bold cyan")
+        table.add_column("Demand Index", justify="center")
+        table.add_column("Importance", style="bold")
+        table.add_column("Category", style="dim")
+        table.add_column("Sample Use Cases")
+
+        for s in report.top_hard_skills:
+            imp_style = "red" if "must" in s.importance.lower() or "core" in s.importance.lower() else ("blue" if "high" in s.importance.lower() else "green")
+            table.add_row(
+                s.skill_name,
+                f"{s.frequency_score}%",
+                f"[{imp_style}]{s.importance}[/{imp_style}]",
+                s.category,
+                "; ".join(s.sample_use_cases[:2]) if s.sample_use_cases else "N/A"
+            )
+        console.print(table)
+        return
+
+    # If user wants an employability roadmap
+    if roadmap:
+        if not resume:
+            console.print("[bold red]Error: --roadmap requires --resume <file> to diagnose candidate gaps.[/bold red]")
+            sys.exit(1)
+
+        console.print(Panel.fit(
+            f"[bold cyan]🎯 Employability & Upskilling Diagnostic[/bold cyan]\n"
+            f"[dim]Resume: [bold]{resume}[/bold] | Target Role: [bold]{target_role}[/bold][/dim]",
+            border_style="cyan"
+        ))
+        key_manager = KeyManager()
+        if add_key:
+            key_manager.add_key(add_key)
+        agent = JobSearchAgent(key_manager=key_manager, model=model)
+
+        with console.status("[bold blue]Parsing candidate base resume...", spinner="dots"):
+            resume_content = InputParser.load_content(resume)
+
+        with console.status("[bold magenta]Diagnosing Pareto 80/20 gaps and generating budget-adaptive learning paths...", spinner="dots"):
+            road = agent.generate_employability_roadmap(
+                base_resume=resume_content,
+                target_role=target_role,
+                budget_preference="All Tiers"
+            )
+
+        console.print(Panel(
+            f"[bold]Target Role:[/bold] {road.target_role}\n"
+            f"[bold]Current Readiness Score:[/bold] [bold cyan]{road.current_readiness_score}%[/bold cyan]\n"
+            f"[bold]Estimated Timeline to 85%+ Match:[/bold] [bold green]{road.time_to_ready_estimate}[/bold green]\n\n"
+            f"[bold]Executive Career Strategy:[/bold]\n{road.executive_summary}",
+            title="[bold green]Employability Diagnostic Summary[/bold green]",
+            border_style="green"
+        ))
+
+        # Skill Gaps Table
+        gap_table = Table(title="Pareto 80/20 Skill Gaps & Curated Recommendations", show_header=True, header_style="bold yellow")
+        gap_table.add_column("Gap", style="bold")
+        gap_table.add_column("Tier", style="bold")
+        gap_table.add_column("Why It Matters")
+        gap_table.add_column("Curated Recommendations", style="cyan")
+
+        for g in road.skill_gaps:
+            tier_style = "red" if "1" in g.tier else ("blue" if "2" in g.tier else "green")
+            recs = []
+            for r in g.learning_pathway[:2]:
+                sub = " [MY-Subsidized]" if r.malaysia_subsidy_eligible else ""
+                recs.append(f"• {r.title} ({r.provider}, {r.cost_tier}){sub}")
+            gap_table.add_row(
+                g.skill,
+                f"[{tier_style}]{g.tier}[/{tier_style}]",
+                g.why_it_matters,
+                "\n".join(recs) if recs else "Self-study / Docs"
+            )
+        console.print(gap_table)
+
+        console.print("\n[bold red]🔴 30-Day Sprint Milestones (Tier 1 Deal-Breakers):[/bold red]")
+        for s in road.sprint_30_days:
+            console.print(f"  • {s}")
+        console.print(f"\n[dim]To view complete interactive blueprints, run: [cyan]python main.py --web[/cyan][/dim]\n")
         return
 
     if not resume or not job:
