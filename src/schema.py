@@ -103,3 +103,85 @@ class ReviewFeedback(BaseModel):
     ats_score: int = Field(..., ge=0, le=100, description="ATS readiness & keyword match score (0-100)")
     critique: str = Field(..., description="Executive recruiter critique of phrasing, impact, missing keywords, and flow")
     suggestions: List[str] = Field(default_factory=list, description="Concrete improvement points for the next drafting iteration")
+
+
+# ---------------------------------------------------------------------------
+# 5. Market Demand & Career Intelligence Schemas
+# ---------------------------------------------------------------------------
+
+class MarketSkillDemand(BaseModel):
+    skill_name: str = Field(..., description="Name of the skill, tool, or technology")
+    frequency_score: int = Field(..., ge=0, le=100, description="Relative demand intensity (0-100) across scanned job openings")
+    importance: str = Field(..., description="'Core / Must-Have', 'High-Demand', or 'Emerging / Differentiator'")
+    category: str = Field(..., description="Category (e.g. 'Languages', 'Frameworks & Libraries', 'Cloud & DevOps', 'Databases', 'AI & Machine Learning')")
+    sample_use_cases: List[str] = Field(default_factory=list, description="Concrete real-world applications mentioned in job postings")
+
+
+class ExperienceTierExpectation(BaseModel):
+    band: str = Field(..., description="Seniority band (e.g. 'Junior / Entry', 'Mid-Level', 'Senior / Lead')")
+    expectation: str = Field(..., description="Key technical, ownership, and experience expectations")
+
+
+class MarketDemandReport(BaseModel):
+    query: str = Field(..., description="Job role or search query analyzed")
+    location: str = Field(..., description="Target geographic hub analyzed")
+    sample_size: int = Field(..., description="Number of job postings synthesized")
+    market_summary: str = Field(..., description="Executive market overview summarizing hiring velocity, tech stack trends, and talent expectations")
+    top_hard_skills: List[MarketSkillDemand] = Field(default_factory=list, description="Ranked list of technical skills in highest demand")
+    top_soft_skills: List[str] = Field(default_factory=list, description="Crucial soft skills, teamwork, or leadership competencies sought")
+    emerging_trends: List[str] = Field(default_factory=list, description="Breakout tools, libraries, or architectural paradigms on the rise")
+    experience_expectations: List[ExperienceTierExpectation] = Field(default_factory=list, description="Typical expectations across Junior, Mid, and Senior bands")
+    salary_insights: str = Field(..., description="Estimated market compensation range, trends, or currency breakdown")
+    top_hiring_companies: List[str] = Field(default_factory=list, description="Notable companies or industries actively recruiting for this profile")
+
+
+# ---------------------------------------------------------------------------
+# 6. Employability & Upskilling Schemas
+# ---------------------------------------------------------------------------
+
+class LearningResource(BaseModel):
+    title: str = Field(..., description="Title of course, certification, tutorial, or bootcamp")
+    provider: str = Field(..., description="Provider name (e.g. Coursera, Udemy, YouTube / FreeCodeCamp, AWS Official, Next Academy, 42KL)")
+    resource_type: str = Field(..., description="'Online Course', 'Professional Certification', 'Documentation / Self-Paced', or 'Physical / Bootcamp Hub'")
+    cost_tier: str = Field(..., description="'Free / RM0', 'Budget (< RM150 / $30)', 'Professional Cert (RM400 - RM1,800)', or 'Bootcamp / Subsidized'")
+    estimated_duration: str = Field(..., description="Estimated time commitment (e.g. '15 hours', '4 weeks @ 5 hrs/wk')")
+    search_url: str = Field(..., description="Direct website, search link, or documentation reference")
+    malaysia_subsidy_eligible: bool = Field(default=False, description="True if eligible for HRD Corp, MDEC, or Malaysian governmental upskilling grants")
+
+
+class SkillGapItem(BaseModel):
+    skill: str = Field(..., description="Name of the missing or underrepresented skill")
+    tier: str = Field(..., description="'Tier 1: Deal-Breaker' (auto-rejection risk), 'Tier 2: High-Leverage Booster' (+20% match), or 'Tier 3: Learn-on-the-Job'")
+    why_it_matters: str = Field(..., description="Why hiring managers mandate or favor this skill for this role")
+    learning_pathway: List[LearningResource] = Field(default_factory=list, description="Curated multi-tier learning options tailored to this skill")
+
+
+class ProofOfWorkProject(BaseModel):
+    title: str = Field(..., description="Compelling, portfolio-ready project name")
+    target_industry: str = Field(..., description="Target industry vertical (e.g. Fintech, Logistics, Healthcare, E-Commerce)")
+    problem_statement: str = Field(..., description="Real-world business or engineering problem this project solves")
+    tech_stack: List[str] = Field(default_factory=list, description="Core languages, frameworks, and cloud tools to utilize")
+    architecture_overview: str = Field(..., description="System design and architecture description (components, data flow, API design)")
+    resume_bullet_point: str = Field(..., description="XYZ-formula bullet point ready to place directly onto a resume once completed")
+    github_readme_starter: str = Field(..., description="Markdown starter template for the project repository README")
+
+
+class InterviewGapQuestion(BaseModel):
+    skill_gap: str = Field(..., description="The underlying skill or experience gap being probed")
+    question: str = Field(..., description="Realistic, challenging interview question a hiring manager will ask")
+    recruiter_intent: str = Field(..., description="What the interviewer is specifically evaluating or trying to uncover")
+    recommended_star_response: str = Field(..., description="Recommended response framework using the STAR method (Situation, Task, Action, Result) to ethically reframe experience")
+
+
+class EmployabilityRoadmap(BaseModel):
+    target_role: str = Field(..., description="Target job title or career track analyzed")
+    current_readiness_score: int = Field(..., ge=0, le=100, description="Readiness score (0-100) based on current resume vs market benchmarks")
+    time_to_ready_estimate: str = Field(..., description="Estimated timeline to achieve 85%+ employability (e.g. '3-5 weeks at 8 hrs/week')")
+    executive_summary: str = Field(..., description="High-level strategic diagnosis of candidate positioning and highest-ROI actions")
+    skill_gaps: List[SkillGapItem] = Field(default_factory=list, description="Prioritized 80/20 skill gap items with tailored learning resources")
+    sprint_30_days: List[str] = Field(default_factory=list, description="Actionable week-by-week sprint milestones for the first 30 days (Tier 1 Deal-Breakers)")
+    sprint_60_days: List[str] = Field(default_factory=list, description="Milestones for days 31-60 (Tier 2 High-Leverage Boosters & Project Build)")
+    sprint_90_days: List[str] = Field(default_factory=list, description="Milestones for days 61-90 (Interview readiness & targeted applications)")
+    portfolio_projects: List[ProofOfWorkProject] = Field(default_factory=list, description="Custom portfolio projects that provide undeniable proof of capability")
+    interview_gap_questions: List[InterviewGapQuestion] = Field(default_factory=list, description="Key gap-focused interview questions with STAR answer frameworks")
+

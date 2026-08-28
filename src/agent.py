@@ -18,7 +18,9 @@ from src.schema import (
     MatchEvaluation,
     TailoredResumePayload,
     CoverLetterPayload,
-    ReviewFeedback
+    ReviewFeedback,
+    MarketDemandReport,
+    EmployabilityRoadmap
 )
 
 load_dotenv()
@@ -393,3 +395,111 @@ Perform a rigorous evaluation and output the ReviewFeedback.
 
         update_progress("Finalizing Application Artifacts...", 5)
         return job_analysis, match_evaluation, tailored_resume, cover_letter, review
+
+    # -----------------------------------------------------------------------
+    # PASS 4: Market Demand Intelligence & Macro Trend Analyzer
+    # -----------------------------------------------------------------------
+
+    def analyze_market_demand(
+        self,
+        query: str,
+        location: str,
+        sample_size: int,
+        market_corpus: str
+    ) -> MarketDemandReport:
+        """
+        Synthesizes a representative sample of active job listings into a
+        structured market intelligence report on in-demand skills, salary, and trends.
+        """
+        system_instruction = (
+            "You are a Chief Labor Market Economist & Senior Technical Talent Strategist specializing in the "
+            "technology ecosystem (Southeast Asia, Malaysia, and Global Tech). You analyze live job postings "
+            "to extract accurate skill demand frequencies, must-have prerequisites vs. emerging differentiators, "
+            "market compensation insights, and actionable hiring trends."
+        )
+
+        corpus_section = market_corpus.strip() if market_corpus and market_corpus.strip() else (
+            f"Note: Direct live postings were limited; utilize verified 2026 market benchmarks for '{query}' in '{location}'."
+        )
+
+        prompt = f"""Synthesize labor market demand for:
+Target Role: {query}
+Geographic Hub: {location}
+Sample Postings Analyzed: {sample_size}
+
+--- SCANNED MARKET POSTINGS DATA ---
+{corpus_section}
+-----------------------------------
+
+Extract and produce a comprehensive MarketDemandReport:
+1. Identify the top 8-15 technical hard skills with accurate relative frequency scores (0-100), importance tags, and real use cases.
+2. Highlight key soft skills and emerging/breakout tools.
+3. Detail experience expectations across Junior, Mid, and Senior tiers.
+4. Provide realistic compensation insights (incorporating local currency e.g. MYR / USD / SGD where appropriate).
+5. List active hiring companies or major industry sectors.
+"""
+        return self._call_structured_gemini(prompt, MarketDemandReport, system_instruction)
+
+    # -----------------------------------------------------------------------
+    # PASS 5: Employability Diagnostic & Budget-Adaptive Upskilling Engine
+    # -----------------------------------------------------------------------
+
+    def generate_employability_roadmap(
+        self,
+        base_resume: str,
+        target_role: str,
+        market_report: Optional[MarketDemandReport] = None,
+        budget_preference: Optional[str] = None,
+        hours_per_week: int = 10
+    ) -> EmployabilityRoadmap:
+        """
+        Diagnoses a candidate's background against market requirements using the Pareto 80/20 rule.
+        Generates budget-tiered learning paths (including Malaysian hubs/subsidies),
+        portfolio proof-of-work project specs, sprint milestones, and mock interview drills.
+        """
+        system_instruction = (
+            "You are an Elite Career Transition Architect & Technical Engineering Mentor. "
+            "You evaluate a candidate's genuine background against real market standards using the Pareto 80/20 principle:\n"
+            "1. NO FLUFF: Be brutally honest with the candidate's current readiness score (0-100).\n"
+            "2. 80/20 GAP PRIORITIZATION: Classify gaps into:\n"
+            "   - 'Tier 1: Deal-Breaker' (auto-rejection risks: must address first)\n"
+            "   - 'Tier 2: High-Leverage Booster' (differentiators that yield +20-30% interview callbacks)\n"
+            "   - 'Tier 3: Learn-on-the-Job' (acceptable to pick up once hired)\n"
+            "3. BUDGET-ADAPTIVE LEARNING: Provide curated resources across 4 distinct tiers:\n"
+            "   - Free / RM0 (YouTube, official docs, FreeCodeCamp, open-source)\n"
+            "   - Budget (< RM150 / $30) (Udemy sales, Coursera audit/financial aid)\n"
+            "   - Professional Certifications (AWS, GCP, CKA, Terraform)\n"
+            "   - Physical / Bootcamp / Subsidized Hubs (especially Malaysia: HRD Corp claimable, 42KL, Next Academy, MDEC)\n"
+            "4. PROOF-OF-WORK: Suggest 1-2 portfolio project blueprints with system architecture, starter README, and pre-written resume bullet points.\n"
+            "5. TOUGH GAP INTERVIEW PREP: Provide questions recruiters ask about their specific weak spots with STAR-method responses."
+        )
+
+        market_context_str = ""
+        if market_report:
+            skills_preview = ', '.join([f'{s.skill_name} ({s.importance})' for s in market_report.top_hard_skills[:10]])
+            market_context_str = f"""
+--- RECENT MARKET DEMAND INTELLIGENCE ---
+Target Query: {market_report.query} in {market_report.location}
+Key Market Hard Skills: {skills_preview}
+Emerging Trends: {', '.join(market_report.emerging_trends)}
+Salary Trends: {market_report.salary_insights}
+----------------------------------------
+"""
+
+        budget_str = f"Preferred Budget Focus: {budget_preference}\n" if budget_preference else "Provide all 4 budget tiers for each gap.\n"
+
+        prompt = f"""Perform a comprehensive Employability Diagnostic and generate an action-oriented EmployabilityRoadmap:
+
+Target Role / Track: {target_role}
+Candidate Available Study Time: {hours_per_week} hours/week
+{budget_str}
+{market_context_str}
+
+--- CANDIDATE BASE RESUME PROFILE ---
+{base_resume}
+-------------------------------------
+
+Generate the complete EmployabilityRoadmap.
+"""
+        return self._call_structured_gemini(prompt, EmployabilityRoadmap, system_instruction)
+

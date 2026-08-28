@@ -3,7 +3,7 @@ Autonomous Job Finder module with multi-board aggregation (LinkedIn, Indeed, Goo
 and specialized support for Malaysia & Global locations.
 """
 import logging
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
 from dataclasses import dataclass, asdict
 import pandas as pd
 
@@ -147,3 +147,48 @@ class JobFinder:
         except Exception as e:
             logger.error(f"Error during job search: {e}", exc_info=True)
             return []
+
+    @classmethod
+    def sample_market_corpus(
+        cls,
+        query: str,
+        location: str = "Malaysia",
+        sample_size: int = 15,
+        sites: Optional[List[str]] = None
+    ) -> Tuple[List[JobListing], str]:
+        """
+        Gathers a representative sample of active job listings and compiles a cleaned,
+        structured market text corpus for LLM trend and skill synthesis.
+        """
+        listings = cls.search(
+            search_term=query,
+            location=location,
+            sites=sites or ["linkedin", "indeed", "google"],
+            results_wanted=sample_size
+        )
+
+        corpus_chunks = []
+        for idx, job in enumerate(listings, 1):
+            salary_str = "Not Disclosed"
+            if job.salary_min and job.salary_max:
+                salary_str = f"{job.salary_min:,.0f} - {job.salary_max:,.0f} ({job.salary_interval or 'annual'})"
+            elif job.salary_min:
+                salary_str = f"From {job.salary_min:,.0f} ({job.salary_interval or 'annual'})"
+
+            desc_snip = job.description.strip()
+            if len(desc_snip) > 1500:
+                desc_snip = desc_snip[:1500] + "... [truncated]"
+
+            chunk = (
+                f"### POSTING #{idx}: {job.title}\n"
+                f"- Company: {job.company}\n"
+                f"- Location: {job.location}\n"
+                f"- Platform: {job.site}\n"
+                f"- Salary Listed: {salary_str}\n"
+                f"- Description Excerpt:\n{desc_snip}\n"
+            )
+            corpus_chunks.append(chunk)
+
+        combined_corpus = "\n".join(corpus_chunks)
+        return listings, combined_corpus
+
