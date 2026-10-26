@@ -130,9 +130,9 @@ class JobSearchAgent:
 
     def __init__(self, key_manager: Optional[KeyManager] = None, model: Optional[str] = None):
         self.km = key_manager or KeyManager()
-        self.model = model or os.getenv("GEMINI_MODEL") or "gemini-3.6-flash"
+        self.model = model or os.getenv("GEMINI_MODEL") or "gemini-3.8-flash"
         # Fallback models in case of temporary 503 high demand or 429 quota exhaustion
-        self.fallback_models = ["gemini-3.6-flash", "gemini-3.5-flash"]
+        self.fallback_models = ["gemini-3.8-flash", "gemini-3.7-flash", "gemini-3.5-flash"]
 
     def _call_structured_gemini(self, prompt: str, schema_cls: type, system_instruction: Optional[str] = None) -> any:
         """Helper to invoke Gemini with rigid Pydantic JSON schema."""

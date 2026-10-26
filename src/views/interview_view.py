@@ -15,7 +15,7 @@ def render_interview_view():
     st.markdown('<div class="sub-header">Practice answering challenging questions on your <b>exact missing skills</b>. Learn what recruiters are really testing and master the STAR response framework.</div>', unsafe_allow_html=True)
 
     roadmap: EmployabilityRoadmap = st.session_state.get("employability_roadmap")
-    model_name = st.session_state.get("selected_model", "gemini-3.6-flash")
+    model_name = st.session_state.get("selected_model", "gemini-3.8-flash")
     custom_key = st.session_state.get("custom_key", "")
 
     if not roadmap or not roadmap.interview_gap_questions:
@@ -36,6 +36,15 @@ def render_interview_view():
             km = KeyManager()
             if custom_key.strip():
                 km.add_key(custom_key.strip())
+
+            if not km.keys:
+                st.error(
+                    "🔑 **Google Gemini API Key Required**\n\n"
+                    "Please enter your Gemini API key in the sidebar under **⚙️ Engine Settings** to generate interview questions.\n\n"
+                    "👉 [Click here to get a free key from Google AI Studio](https://aistudio.google.com/app/apikey) (Takes 30 seconds, 100% free)."
+                )
+                return
+
             agent = JobSearchAgent(key_manager=km, model=model_name)
             current_resume = st.session_state.get("base_resume_text", "Experienced developer with Python, FastAPI, and SQL background.")
 

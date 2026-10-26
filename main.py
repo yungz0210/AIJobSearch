@@ -78,7 +78,7 @@ console = Console(force_terminal=True, legacy_windows=False)
 )
 @click.option(
     "--model", "-m",
-    default="gemini-3.6-flash",
+    default="gemini-3.8-flash",
     show_default=True,
     help="Target Gemini model name"
 )

@@ -36,6 +36,15 @@ def run_tailoring_pipeline(resume_text: str, job_text_or_url: str, model_name: s
     if custom_key.strip():
         km.add_key(custom_key.strip())
 
+    if not km.keys:
+        st.error(
+            "🔑 **Google Gemini API Key Required**\n\n"
+            "Please provide your API key in the sidebar under **⚙️ Engine Settings** to run the multi-agent pipeline.\n\n"
+            "👉 [Click here to get a free key from Google AI Studio](https://aistudio.google.com/app/apikey) "
+            "(Takes 30 seconds, 100% free with no credit card required)."
+        )
+        return
+
     agent = JobSearchAgent(key_manager=km, model=model_name)
     renderer = Renderer()
 
@@ -188,31 +197,75 @@ def render_studio_view():
     if "target_location" not in st.session_state:
         st.session_state["target_location"] = "Kuala Lumpur, Malaysia"
 
-    model_name = st.session_state.get("selected_model", "gemini-3.6-flash")
+    model_name = st.session_state.get("selected_model", "gemini-3.8-flash")
     custom_key = st.session_state.get("custom_key", "")
     max_retries = st.session_state.get("max_retries", 1)
 
     # Section 1: Resume Intake
     st.subheader("📄 1. Your Base Resume / CV Profile")
 
-    # Auto-detect existing resumes in project folder
-    detected_files = []
-    ignored_names = {"readme.md", "requirements.txt", "test_job.txt", ".env", ".env.example"}
-    for f in sorted(Path(".").iterdir()):
-        if f.is_file() and f.suffix.lower() in [".docx", ".pdf", ".md", ".txt"]:
-            if f.name.lower() not in ignored_names:
-                detected_files.append(f.name)
-
     resume_source = st.radio(
         "Resume Source:",
-        ["📁 Select from Project Folder (Auto-Detected)", "⬆️ Upload New File", "✍️ Paste Resume Text"],
+        ["⬆️ Upload CV / Resume", "✨ Try Demo Profile (Alex Rivera)", "✍️ Paste Resume Text", "📁 Project Directory Files"],
         horizontal=True,
+        index=0,
         key="studio_resume_source"
     )
 
     resume_content = st.session_state.get("base_resume_text", "")
 
-    if resume_source == "📁 Select from Project Folder (Auto-Detected)":
+    if resume_source == "✨ Try Demo Profile (Alex Rivera)":
+        demo_file = Path("test_resume.md")
+        if demo_file.exists():
+            demo_text = demo_file.read_text(encoding="utf-8")
+            st.session_state["base_resume_text"] = demo_text
+            resume_content = demo_text
+            st.success("✅ **Demo Profile Loaded:** Alex Rivera — Senior AI Systems Engineer (5+ yrs exp)")
+            with st.expander("👀 View Loaded Demo Profile Preview", expanded=False):
+                st.markdown(demo_text)
+        else:
+            st.info("Demo profile file not found.")
+
+    elif resume_source == "⬆️ Upload New File" or resume_source == "⬆️ Upload CV / Resume":
+        uploaded_file = st.file_uploader(
+            "Upload Base Resume (.docx, .pdf, .md, .txt)",
+            type=["docx", "pdf", "md", "txt"],
+            help="Drop your current CV or resume."
+        )
+        if uploaded_file is not None:
+            suffix = Path(uploaded_file.name).suffix
+            import tempfile
+            with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+                tmp.write(uploaded_file.getvalue())
+                tmp_path = tmp.name
+            try:
+                resume_content = InputParser.parse_file(tmp_path)
+                st.session_state["base_resume_text"] = resume_content
+                st.success(f"✅ Uploaded and parsed **{uploaded_file.name}** ({len(resume_content)} chars).")
+            finally:
+                if os.path.exists(tmp_path):
+                    os.remove(tmp_path)
+
+    elif resume_source == "✍️ Paste Resume Text":
+        pasted_resume = st.text_area(
+            "Paste your resume text here:",
+            value=resume_content if len(resume_content) < 5000 else "",
+            height=150,
+            placeholder="Paste your base experience, education, and skills..."
+        )
+        if pasted_resume.strip():
+            resume_content = pasted_resume.strip()
+            st.session_state["base_resume_text"] = resume_content
+            st.success(f"✅ Loaded pasted resume text ({len(resume_content)} chars).")
+
+    else:  # "📁 Project Directory Files"
+        detected_files = []
+        ignored_names = {"readme.md", "requirements.txt", "test_job.txt", ".env", ".env.example", "packages.txt"}
+        for f in sorted(Path(".").iterdir()):
+            if f.is_file() and f.suffix.lower() in [".docx", ".pdf", ".md", ".txt"]:
+                if f.name.lower() not in ignored_names:
+                    detected_files.append(f.name)
+
         if detected_files:
             default_idx = 0
             for idx, fname in enumerate(detected_files):
@@ -236,39 +289,7 @@ def render_studio_view():
                 except Exception as e:
                     st.error(f"Error reading {selected_local_file}: {e}")
         else:
-            st.info("No resume files found in the project folder. Please upload a file below.")
-
-    elif resume_source == "⬆️ Upload New File":
-        uploaded_file = st.file_uploader(
-            "Upload Base Resume (.docx, .pdf, .md, .txt)",
-            type=["docx", "pdf", "md", "txt"],
-            help="Drop your current CV or resume."
-        )
-        if uploaded_file is not None:
-            suffix = Path(uploaded_file.name).suffix
-            import tempfile
-            with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
-                tmp.write(uploaded_file.getvalue())
-                tmp_path = tmp.name
-            try:
-                resume_content = InputParser.parse_file(tmp_path)
-                st.session_state["base_resume_text"] = resume_content
-                st.success(f"✅ Uploaded and parsed **{uploaded_file.name}** ({len(resume_content)} chars).")
-            finally:
-                if os.path.exists(tmp_path):
-                    os.remove(tmp_path)
-
-    else:
-        pasted_resume = st.text_area(
-            "Paste your resume text here:",
-            value=resume_content if len(resume_content) < 5000 else "",
-            height=150,
-            placeholder="Paste your base experience, education, and skills..."
-        )
-        if pasted_resume.strip():
-            resume_content = pasted_resume.strip()
-            st.session_state["base_resume_text"] = resume_content
-            st.success(f"✅ Loaded pasted resume text ({len(resume_content)} chars).")
+            st.info("No resume files found in the project directory. Please use Upload or Paste options above.")
 
     st.markdown("---")
 
@@ -282,6 +303,7 @@ def render_studio_view():
     with mode_tab1:
         st.markdown("#### 🇲🇾 Search Live Job Openings")
         st.caption("Search across LinkedIn, Indeed Malaysia, and Google Jobs without needing any accounts.")
+        st.info("💡 **Tip for mobile & cloud visitors:** If job portals are temporarily slow or rate-limited, switch to the **'Direct Input'** tab to paste any JobStreet, LinkedIn, or company job description directly for instant 1-click tailoring!")
 
         s_col1, s_col2, s_col3 = st.columns([2, 2, 1])
 
@@ -371,6 +393,14 @@ def render_studio_view():
         st.markdown("#### 📋 Paste Job URL or Description")
         st.caption("Paste a link from **JobStreet Malaysia**, **LinkedIn**, **Indeed**, **Greenhouse**, **Lever**, or paste the raw description text.")
 
+        sample_col_btn1, sample_col_btn2 = st.columns([3, 1])
+        with sample_col_btn2:
+            if st.button("✨ Load Sample Job", use_container_width=True, help="Load sample Senior AI Systems Engineer job posting"):
+                sample_job_path = Path("test_job.txt")
+                if sample_job_path.exists():
+                    st.session_state["sample_job_text"] = sample_job_path.read_text(encoding="utf-8")
+                    st.success("Loaded sample job description!")
+
         d_col1, d_col2 = st.columns(2)
         with d_col1:
             direct_job_url = st.text_input(
@@ -378,8 +408,10 @@ def render_studio_view():
                 placeholder="https://my.jobstreet.com/jobs/..."
             )
         with d_col2:
+            default_job_text = st.session_state.get("sample_job_text", "")
             direct_job_text = st.text_area(
                 "Or paste full job description text:",
+                value=default_job_text,
                 height=150,
                 placeholder="Paste the job responsibilities, requirements, qualifications..."
             )

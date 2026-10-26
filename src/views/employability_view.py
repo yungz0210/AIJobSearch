@@ -28,7 +28,7 @@ def render_employability_view():
     if "target_role_query" not in st.session_state:
         st.session_state["target_role_query"] = "Software Engineer"
 
-    model_name = st.session_state.get("selected_model", "gemini-3.6-flash")
+    model_name = st.session_state.get("selected_model", "gemini-3.8-flash")
     custom_key = st.session_state.get("custom_key", "")
     active_market_report: MarketDemandReport = st.session_state.get("market_demand_report")
 
@@ -87,7 +87,15 @@ def render_employability_view():
                 current_resume = pasted_new
                 st.success("Resume updated!")
     else:
-        st.warning("No resume currently loaded in session. Please upload or paste one below:")
+        st.warning("No resume currently loaded in session. Please upload, paste, or load the demo profile below:")
+        demo_btn_c1, demo_btn_c2 = st.columns([3, 1])
+        with demo_btn_c2:
+            if st.button("✨ Load Demo Profile", use_container_width=True, help="Load Alex Rivera sample resume"):
+                demo_file = Path("test_resume.md")
+                if demo_file.exists():
+                    st.session_state["base_resume_text"] = demo_file.read_text(encoding="utf-8")
+                    st.rerun()
+
         upload_col, paste_col = st.columns(2)
         with upload_col:
             up_file = st.file_uploader("Upload CV (.docx, .pdf, .md, .txt)", type=["docx", "pdf", "md", "txt"])
@@ -125,6 +133,15 @@ def render_employability_view():
             km = KeyManager()
             if custom_key.strip():
                 km.add_key(custom_key.strip())
+
+            if not km.keys:
+                st.error(
+                    "🔑 **Google Gemini API Key Required**\n\n"
+                    "Please enter your Gemini API key in the sidebar under **⚙️ Engine Settings** to run the diagnostic.\n\n"
+                    "👉 [Click here to get a free key from Google AI Studio](https://aistudio.google.com/app/apikey) (Takes 30 seconds, 100% free)."
+                )
+                return
+
             agent = JobSearchAgent(key_manager=km, model=model_name)
 
             with st.spinner("Analyzing candidate profile against market expectations and curating multi-tier learning paths..."):

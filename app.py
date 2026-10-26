@@ -30,20 +30,23 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Global Custom CSS for Premium Design & Micro-animations
+# Global Custom CSS for Premium Design, Micro-animations & Mobile Responsiveness
 st.markdown("""
 <style>
+    /* Desktop & Core Styles */
     .main-header {
         font-size: 2.2rem;
         font-weight: 800;
         color: #0f172a;
         margin-bottom: 0.2rem;
         letter-spacing: -0.5px;
+        line-height: 1.2;
     }
     .sub-header {
         font-size: 1.05rem;
         color: #475569;
         margin-bottom: 1.5rem;
+        line-height: 1.5;
     }
     .score-card {
         background: linear-gradient(135deg, #1e293b, #0f172a);
@@ -53,12 +56,13 @@ st.markdown("""
         text-align: center;
         margin-bottom: 1rem;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.08);
     }
     .score-val {
         font-size: 2.6rem;
         font-weight: 800;
         color: #38bdf8;
+        line-height: 1.1;
     }
     .highlight-box {
         background-color: #f8fafc;
@@ -72,7 +76,7 @@ st.markdown("""
         background-color: #ffffff;
         border: 1px solid #e2e8f0;
         border-radius: 10px;
-        padding: 1rem;
+        padding: 1.1rem;
         margin-bottom: 0.8rem;
         box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         transition: transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
@@ -84,16 +88,73 @@ st.markdown("""
     }
     .badge {
         display: inline-block;
-        padding: 0.2rem 0.6rem;
+        padding: 0.25rem 0.65rem;
         font-size: 0.75rem;
         font-weight: 600;
         border-radius: 9999px;
         margin-right: 0.4rem;
+        margin-bottom: 0.3rem;
     }
     .badge-linkedin { background-color: #0077b5; color: white; }
     .badge-indeed { background-color: #2164f3; color: white; }
     .badge-google { background-color: #ea4335; color: white; }
     .badge-loc { background-color: #f1f5f9; color: #475569; }
+
+    .bmac-btn {
+        display: block;
+        background: linear-gradient(135deg, #FFDD00 0%, #FBBF24 100%);
+        color: #000000 !important;
+        font-weight: 700;
+        text-align: center;
+        padding: 0.65rem 1rem;
+        border-radius: 8px;
+        text-decoration: none !important;
+        box-shadow: 0 2px 6px rgba(251, 191, 36, 0.3);
+        transition: transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+    .bmac-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);
+    }
+
+    /* 📱 Mobile Specific Media Queries */
+    @media (max-width: 768px) {
+        .block-container {
+            padding-top: 1.5rem !important;
+            padding-left: 0.8rem !important;
+            padding-right: 0.8rem !important;
+            padding-bottom: 3rem !important;
+        }
+        .main-header {
+            font-size: 1.5rem !important;
+            margin-bottom: 0.4rem !important;
+        }
+        .sub-header {
+            font-size: 0.9rem !important;
+            margin-bottom: 1rem !important;
+        }
+        .score-card {
+            padding: 0.8rem !important;
+            margin-bottom: 0.6rem !important;
+        }
+        .score-val {
+            font-size: 2rem !important;
+        }
+        .job-card {
+            padding: 0.8rem !important;
+        }
+        /* Make buttons touch-friendly on mobile */
+        button[kind="primary"], button[kind="secondary"] {
+            min-height: 44px !important;
+            font-size: 0.95rem !important;
+        }
+        /* Make tabs scrollable horizontally on mobile */
+        div[data-baseweb="tab-list"] {
+            overflow-x: auto !important;
+            white-space: nowrap !important;
+            padding-bottom: 4px !important;
+        }
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -107,7 +168,7 @@ def init_session_state():
         "search_results": [],
         "market_demand_report": None,
         "employability_roadmap": None,
-        "selected_model": "gemini-3.6-flash",
+        "selected_model": "gemini-3.8-flash",
         "custom_key": "",
         "max_retries": 1
     }
@@ -117,25 +178,34 @@ def init_session_state():
 
 
 def render_sidebar():
-    """Renders shared sidebar configurations and status."""
+    """Renders shared sidebar configurations, BYOK helper, and status."""
     with st.sidebar:
         st.markdown("### ⚙️ Engine Settings")
         model = st.selectbox(
             "Gemini Model",
-            ["gemini-3.6-flash", "gemini-3.5-flash", "gemini-3.7-flash"],
+            ["gemini-3.8-flash", "gemini-3.8-pro", "gemini-3.7-flash", "gemini-3.5-flash"],
             index=0,
             key="sb_model"
         )
         st.session_state["selected_model"] = model
 
+        st.markdown("🔑 **Gemini API Key (BYOK)**")
         key = st.text_input(
-            "Custom API Key (optional)",
+            "API Key",
             type="password",
             value=st.session_state.get("custom_key", ""),
-            help="Leave blank to use preloaded rotation keys.",
-            key="sb_key"
+            placeholder="AIzaSy...",
+            help="Free via Google AI Studio. Stored privately only in your browser session.",
+            key="sb_key",
+            label_visibility="collapsed"
         )
         st.session_state["custom_key"] = key
+        st.markdown(
+            '<div style="margin-top:-0.4rem; margin-bottom:0.8rem; font-size:0.8rem;">'
+            '👉 <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:#38bdf8; text-decoration:underline;">'
+            'Get a Free Gemini Key (Takes 30s)</a></div>',
+            unsafe_allow_html=True
+        )
 
         retries = st.slider(
             "ATS Validation Refinement Loops",
@@ -156,12 +226,26 @@ def render_sidebar():
         st.caption(f"🎯 **Roadmap:** {'Generated' if has_road else 'Not started'}")
 
         st.markdown("---")
+        st.markdown("### ☕ Support This Tool")
+        st.markdown("""
+        <a class="bmac-btn" href="https://buymeacoffee.com/3amassembly" target="_blank">
+            ☕ Buy Me a Coffee
+        </a>
+        """, unsafe_allow_html=True)
+
+        st.markdown("---")
         st.markdown("### 🇲🇾 Target Hubs")
         st.markdown("""
         - **Malaysia Core:** Kuala Lumpur, Selangor, Cyberjaya, Penang, Johor Bahru
         - **Global:** Singapore, Remote, Worldwide
         - **Subsidies:** HRD Corp, MDEC, GLIC
         """)
+
+        st.markdown("---")
+        st.caption(
+            "⚖️ **Disclaimer:** AI-generated documents are recommendations. "
+            "Please review and verify before submitting. Not affiliated with Google, LinkedIn, or Indeed."
+        )
 
 
 def main():

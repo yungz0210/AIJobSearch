@@ -30,7 +30,7 @@ def render_market_radar_view():
     if "target_location" not in st.session_state:
         st.session_state["target_location"] = "Kuala Lumpur, Malaysia"
 
-    model_name = st.session_state.get("selected_model", "gemini-3.6-flash")
+    model_name = st.session_state.get("selected_model", "gemini-3.8-flash")
     custom_key = st.session_state.get("custom_key", "")
 
     # Market Scan Controls
@@ -91,6 +91,15 @@ def render_market_radar_view():
             km = KeyManager()
             if custom_key.strip():
                 km.add_key(custom_key.strip())
+
+            if not km.keys:
+                st.error(
+                    "🔑 **Google Gemini API Key Required**\n\n"
+                    "Please enter your Gemini API key in the sidebar under **⚙️ Engine Settings** to run the live market synthesis.\n\n"
+                    "👉 [Click here to get a free key from Google AI Studio](https://aistudio.google.com/app/apikey) (Takes 30 seconds, 100% free)."
+                )
+                return
+
             agent = JobSearchAgent(key_manager=km, model=model_name)
 
             progress_bar = st.progress(0)

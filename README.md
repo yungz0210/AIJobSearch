@@ -1,6 +1,6 @@
 # AI Job Search & Career Acceleration Studio
 
-An autonomous, multi-agent Career Intelligence and Application Generation Platform powered by **Google Gemini 3.7 / 3.6 Flash**, **Google GenAI SDK**, **Pydantic v2**, **Plotly**, and modern document rendering engines.
+An autonomous, multi-agent Career Intelligence and Application Generation Platform powered by **Google Gemini 3.8 Flash**, **Google GenAI SDK**, **Pydantic v2**, **Plotly**, and modern document rendering engines.
 
 Directly replicates and significantly expands upon the multi-agent workflow of [ai-job-search](https://github.com/MadsLorentzen/ai-job-search).
 
